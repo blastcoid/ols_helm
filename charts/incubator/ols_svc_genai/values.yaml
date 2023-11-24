@@ -1,0 +1,102 @@
+# Default values for genai.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: greyhats13/ols-svc-genai
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+appConfig:
+  #App Config
+  APP_HOST: 0.0.0.0
+  APP_PORT: 8000
+  APP_LOG_LEVEL: debug
+  #OpenAI Config
+  MAX_RESPONSE_TOKENS: 250
+  TOKEN_LIMIT: 4096
+  CHATCOMPLETION_MODEL: gpt-3.5-turbo
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations:
+    # For AWS EKS
+    # eks.amazonaws.com/role-arn: "arn:aws:iam::124456474132:role/ols-dev-svc-genai"
+    # eks.amazonaws.com/sts-regional-endpoints: "true"
+    # For GKE
+    iam.gke.io/gcp-service-account: "ols-svc-genai@ols-platform-dev.iam.gserviceaccount.com"
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: enabled
+  className: "nginx"
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "genai.dev.ols.blast.co.id"
+    cert-manager.io/cluster-issuer: "letsencrypt-ols-dev"
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: genai.dev.ols.blast.co.id
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - genai.dev.ols.blast.co.id
+      secretName: genai-tls
+
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 75
+
+nodeSelector: {}
+  # iam.gke.io/gke-metadata-server-enabled: "true"
+
+tolerations: []
+
+affinity: {}
